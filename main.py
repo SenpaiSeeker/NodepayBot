@@ -24,7 +24,7 @@ SHOW_REQUEST_ERROR_LOG = False
 
 def print_header():
     ascii_art = figlet_format("NodepayBot", font="slant")
-    colored_art = colored(ascii_art, color="cyan")
+    colored_art = colored(ascii_art, color="white")
     border = "=" * 40
     
     print(border)
@@ -32,20 +32,6 @@ def print_header():
     print(border)
 
 print_header()
-
-def read_tokens_and_proxy():
-    with open('tokens.txt', 'r') as file:
-        tokens_content = sum(1 for line in file)
-
-    with open('proxies.txt', 'r') as file:
-        proxy_count = sum(1 for line in file)
-
-    return tokens_content, proxy_count
-
-tokens_content, proxy_count = read_tokens_and_proxy()
-
-print(f"Tokens: {tokens_content} - Loaded {proxy_count} proxies\n")
-print("=" * 40)
 
 def load_proxies():
     try:
@@ -127,7 +113,7 @@ async def start_ping(token, account_info, proxy):
     url_index = 0
     while True:
         try:
-            url = DOMAIN_API["PING"][url_index]
+            url = random.choice(DOMAIN_API["PING"])
             data = {
                 "id": account_info.get("uid"),
                 "browser_id": browser_id,
@@ -153,9 +139,7 @@ async def start_ping(token, account_info, proxy):
                 logger.warning(f"No response from {url}")
         except Exception as e:
             pass
-        finally:
-            await asyncio.sleep(PING_INTERVAL)
-            url_index = (url_index + 1) % len(DOMAIN_API["PING"])
+        
 
 def log_user_data(user_data):
     try:
