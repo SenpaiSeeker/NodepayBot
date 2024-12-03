@@ -37,7 +37,6 @@ def print_header():
     
     print(border)
     print(colored_art)
-    print("Welcome to NodepayBot - Automate your tasks effortlessly!")
     print(border)
 
 print_header()
@@ -54,7 +53,6 @@ def read_tokens_and_proxy():
 tokens_content, proxy_count = read_tokens_and_proxy()
 
 print(f"Tokens: {tokens_content} - Loaded {proxy_count} proxies\n")
-print(f"Nodepay only supports 3 connections per account. Using too many proxies may cause issues.")
 print("=" * 40)
 
 # Proxy utility
