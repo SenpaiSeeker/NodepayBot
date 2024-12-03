@@ -76,7 +76,7 @@ async def process_account(token, proxy):
     session_response = await call_api(DOMAIN_API["SESSION"], {}, token, proxy)
     if session_response and session_response.get("code") == 0:
         account_info = session_response["data"]
-        data_account = [f"\n{i}: {x}" for i, x in account_info.items()]
+        data_account = [f"{i}: {x}" for i, x in account_info.items()]
         logger.info("Account info:")
         for x in data_account:
             logger.info(x)
