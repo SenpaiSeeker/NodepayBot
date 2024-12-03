@@ -26,8 +26,8 @@ REQUEST_TIMEOUT = 30
 def print_header():
     ascii_art = figlet_format("NodepayBot", font="slant")
     colored_art = colored(ascii_art, color="white")
-    border = "=" * 40
-    print(f"{border}\n{colored_art}\n{border}")
+    border = "=" * 70
+    print(f"{colored(border, color='white')}\n{colored_art}\n{colored(border, color='white')}")
 
 def load_file(filename):
     try:
