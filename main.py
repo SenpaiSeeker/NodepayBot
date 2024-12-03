@@ -11,8 +11,6 @@ from pyfiglet import figlet_format
 from termcolor import colored
 from urllib.parse import urlparse
 
-# Constants
-PING_INTERVAL = 0.5
 DOMAIN_API = {
     "SESSION": "http://api.nodepay.ai/api/auth/session",
     "PING": ["http://18.142.29.174/api/network/ping", "https://nw.nodepay.org/api/network/ping"]
@@ -42,8 +40,6 @@ def load_proxies():
         logger.error(f"Failed to load proxies: {e}")
         raise SystemExit("Exiting due to failure in loading proxies")
 
-# Main functions
-token_status = {}
 
 def dailyclaim(token):
     try:
@@ -69,7 +65,7 @@ def dailyclaim(token):
     except requests.exceptions.RequestException as e:
         logger.error(f"Error : {e}")
 
-async def call_api(url, data, token, proxy=None):
+async def call_api(url, data, token, proxy):
     user_agent = UserAgent().chrome if UserAgent().chrome else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
     sec_ch_ua_version = user_agent.split("Chrome/")[-1].split(" ")[0]
     headers = {
@@ -91,7 +87,7 @@ async def call_api(url, data, token, proxy=None):
         "Cache-Control": "no-cache",
     }
 
-    proxies = {"http": proxy, "https": proxy} if proxy else None
+    proxies = {"http": proxy, "https": proxy}
     try:
         response = requests.post(url, json=data, headers=headers, proxies=proxies, impersonate="chrome110", timeout=30)
         response.raise_for_status()
