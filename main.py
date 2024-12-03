@@ -21,14 +21,6 @@ DOMAIN_API = {
 # Global configuration
 SHOW_REQUEST_ERROR_LOG = False
 
-# Setup logger
-logger.remove()
-logger.add(
-    sink=sys.stdout,
-    format="<r>[Nodepay]</r> | <white>{time:YYYY-MM-DD HH:mm:ss}</white> | "
-           "<level>{level: <7}</level> | <cyan>{line: <3}</cyan> | {message}",
-    colorize=True
-)
 
 def print_header():
     ascii_art = figlet_format("NodepayBot", font="slant")
@@ -54,15 +46,6 @@ tokens_content, proxy_count = read_tokens_and_proxy()
 
 print(f"Tokens: {tokens_content} - Loaded {proxy_count} proxies\n")
 print("=" * 40)
-
-# Proxy utility
-def ask_user_for_proxy():
-    user_input = ""
-    while user_input not in ['yes', 'no']:
-        user_input = input("Do you want to use proxy? (yes/no)? ").strip().lower()
-        if user_input not in ['yes', 'no']:
-            print("Invalid input. Please enter 'yes' or 'no'.")
-    return user_input == 'yes'
 
 def load_proxies():
     try:
@@ -95,7 +78,7 @@ def dailyclaim(token):
                 token_status[token] = "claimed"
         else:
             if token_status.get(token) != "failed":
-                logger.info("<yellow>Reward Already Claimed! Or Something Wrong!</yellow>")
+                logger.info("Reward Already Claimed! Or Something Wrong!")
                 token_status[token] = "failed"
     except requests.exceptions.RequestException as e:
         logger.error(f"Error : {e}")
@@ -164,10 +147,10 @@ async def start_ping(token, account_info, proxy):
                 else:
                     ip_address = get_ip_address()
                     logger.info(
-                        f"<green>Ping Successful</green>, IP Score: <cyan>{ip_score}</cyan>, IP Address: <cyan>{ip_address}</cyan>"
+                        f"Ping Successful, IP Score: {ip_score}, IP Address: {ip_address}"
                     )
             else:
-                logger.warning(f"<yellow>No response from {url}</yellow>")
+                logger.warning(f"No response from {url}")
         except Exception as e:
             pass
         finally:
@@ -182,8 +165,8 @@ def log_user_data(user_data):
         total_collected = balance.get("total_collected", 0)
 
         log_message = (
-            f"<green>{name}</green>, "
-            f"Current Amount: <green>{current_amount}</green>, Total Collected: <green>{total_collected}</green>"
+            f"{name}, "
+            f"Current Amount: {current_amount}, Total Collected: {total_collected}"
         )
         logger.info(f"Name: {log_message}")
     except Exception as e:
