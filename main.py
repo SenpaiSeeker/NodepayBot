@@ -178,9 +178,9 @@ async def process_account(token, proxies):
         if response and response.get("code") == 0:
             account_info = response["data"]
             log_user_data(account_info)
-            await start_ping(token, account_info, proxies)
+            return await start_ping(token, account_info, proxies)
         else:
-            logger.warning(f"<yellow>Invalid or no response for token with proxy {proxies}</yellow>")
+            logger.warning(f"Invalid or no response for token with proxy {proxies}")
     except Exception as e:
         logger.error(f"Unhandled error with proxy {proxy} for token {token}: {e}")
 
