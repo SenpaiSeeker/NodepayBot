@@ -1,15 +1,14 @@
 import asyncio
-import json
 import sys
 import time
 import uuid
+import json
 
 from fake_useragent import UserAgent
 from curl_cffi import requests
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
-import pyfiglet
 from urllib.parse import urlparse
 
 # Constants
@@ -17,11 +16,6 @@ PING_INTERVAL = 0.5
 DOMAIN_API = {
     "SESSION": "http://api.nodepay.ai/api/auth/session",
     "PING": ["http://18.142.29.174/api/network/ping", "https://nw.nodepay.org/api/network/ping"]
-}
-CONNECTION_STATES = {
-    "CONNECTED": 1,
-    "DISCONNECTED": 2,
-    "NONE_CONNECTION": 3
 }
 
 # Global configuration
@@ -35,7 +29,6 @@ logger.add(
            "<level>{level: <7}</level> | <cyan>{line: <3}</cyan> | {message}",
     colorize=True
 )
-logger = logger.opt(colors=True)
 
 def print_header():
     ascii_art = figlet_format("NodepayBot", font="slant")
@@ -60,10 +53,8 @@ def read_tokens_and_proxy():
 
 tokens_content, proxy_count = read_tokens_and_proxy()
 
-print()
 print(f"Tokens: {tokens_content} - Loaded {proxy_count} proxies\n")
 print(f"Nodepay only supports 3 connections per account. Using too many proxies may cause issues.")
-print()
 print("=" * 40)
 
 # Proxy utility
@@ -73,17 +64,7 @@ def ask_user_for_proxy():
         user_input = input("Do you want to use proxy? (yes/no)? ").strip().lower()
         if user_input not in ['yes', 'no']:
             print("Invalid input. Please enter 'yes' or 'no'.")
-    print(f"You selected: {'Yes' if user_input == 'yes' else 'No'}, ENJOY!\n")
     return user_input == 'yes'
-
-def validate_proxies(proxies):
-    valid_proxies = []
-    for proxy in proxies:
-        if proxy.startswith("http://") or proxy.startswith("https://"):
-            valid_proxies.append(proxy)
-        else:
-            logger.warning(f"Invalid proxy format: {proxy}")
-    return valid_proxies
 
 def load_proxies():
     try:
@@ -148,32 +129,9 @@ async def call_api(url, data, token, proxy=None):
         response = requests.post(url, json=data, headers=headers, proxies=proxies, impersonate="chrome110", timeout=30)
         response.raise_for_status()
         return response.json()
-    except requests.exceptions.SSLError:
-        if SHOW_REQUEST_ERROR_LOG:
-            logger.error("Error during API call: SSL Error")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error during API call: {e}")
         return None
-    except requests.exceptions.ConnectionError:
-        if SHOW_REQUEST_ERROR_LOG:
-            logger.error("Error during API call: Connection Error")
-        return None
-    except requests.exceptions.RequestException:
-        if SHOW_REQUEST_ERROR_LOG:
-            logger.error("Error during API call: Request Error")
-        return None
-    except json.JSONDecodeError:
-        if SHOW_REQUEST_ERROR_LOG:
-            logger.error("Error during API call: JSON Decode Error")
-        return None
-
-def get_ip_address():
-    try:
-        response = requests.get("https://api.ipify.org?format=json")
-        if response.status_code == 200:
-            return response.json().get("ip", "Unknown")
-        else:
-            return "Unknown"
-    except requests.exceptions.RequestException:
-        return "Unknown"
 
 def extract_proxy_ip(proxy_url):
     try:
@@ -237,13 +195,10 @@ async def process_account(token, use_proxy, proxies=None):
     proxies = proxies or []
     for proxy in (proxies if use_proxy else [None]):
         try:
-            logger.debug(f"Trying with proxy: {proxy}")
             response = await call_api(DOMAIN_API["SESSION"], {}, token, proxy)
             if response and response.get("code") == 0:
                 account_info = response["data"]
-
                 log_user_data(account_info)
-
                 await start_ping(token, account_info, proxy)
                 return
             else:
@@ -268,7 +223,7 @@ async def main():
     results = await asyncio.gather(*tasks, return_exceptions=True)
     for i, result in enumerate(results):
         if isinstance(result, Exception):
-            logger.error(f"Task for token {tokens[i]} failed: {repr(result).replace('<', '&lt;').replace('>', '&gt;')}")
+            logger.error(f"Task for token {tokens[i]} failed: {repr(result)}")
 
 if __name__ == '__main__':
     try:
