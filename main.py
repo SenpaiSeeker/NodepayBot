@@ -253,8 +253,7 @@ async def process_account(token, use_proxy, proxies=None):
     logger.error(f"<yellow>All attempts failed</yellow>")
 
 async def main():
-    use_proxy = ask_user_for_proxy()
-    proxies = load_proxies() if use_proxy else []
+    proxies = load_proxies()
     try:
         with open('tokens.txt', 'r') as file:
             tokens = file.read().splitlines()
@@ -264,7 +263,7 @@ async def main():
 
     tasks = []
     for token in tokens:
-        tasks.append(process_account(token, use_proxy, proxies))
+        tasks.append(process_account(token, True, proxies))
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
     for i, result in enumerate(results):
