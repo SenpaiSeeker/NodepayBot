@@ -189,39 +189,32 @@ def log_user_data(user_data):
     except Exception as e:
         logger.error(f"Failed to log user data: {e}")
 
-async def process_account(token, use_proxy, proxies=None):
-    proxies = proxies or []
-    for proxy in (proxies if use_proxy else [None]):
-        try:
-            response = await call_api(DOMAIN_API["SESSION"], {}, token, proxy)
-            if response and response.get("code") == 0:
-                account_info = response["data"]
-                log_user_data(account_info)
-                await start_ping(token, account_info, proxy)
-                return
-            else:
-                logger.warning(f"<yellow>Invalid or no response for token with proxy {proxy}</yellow>")
-        except Exception as e:
-            logger.error(f"Unhandled error with proxy {proxy} for token {token}: {e}")
-    logger.error(f"<yellow>All attempts failed</yellow>")
+async def process_account(token, proxies):
+    try:
+        response = await call_api(DOMAIN_API["SESSION"], {}, token, proxies)
+        if response and response.get("code") == 0:
+            account_info = response["data"]
+            log_user_data(account_info)
+            await start_ping(token, account_info, proxies)
+        else:
+            logger.warning(f"<yellow>Invalid or no response for token with proxy {proxies}</yellow>")
+    except Exception as e:
+        logger.error(f"Unhandled error with proxy {proxy} for token {token}: {e}")
 
 async def main():
     proxies = load_proxies()
     try:
         with open('tokens.txt', 'r') as file:
-            tokens = file.read().splitlines()
+            tokens = file.read()
     except FileNotFoundError:
         print("File tokens.txt not found. Please create it.")
         exit()
 
     tasks = []
-    for token in tokens:
-        tasks.append(process_account(token, True, proxies))
+    for proxy in proxies:
+        tasks.append(process_account(tokens, proxy))
 
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            logger.error(f"Task for token {tokens[i]} failed: {repr(result)}")
+    await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
     try:
