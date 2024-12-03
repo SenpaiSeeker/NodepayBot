@@ -76,7 +76,10 @@ async def process_account(token, proxy):
     session_response = await call_api(DOMAIN_API["SESSION"], {}, token, proxy)
     if session_response and session_response.get("code") == 0:
         account_info = session_response["data"]
-        logger.info(f"Account Info: {account_info.get('name', 'Unknown')}")
+        data_account = [f"\n{i}: {x}" for i, x in account_info.items()]
+        logger.info("Account info:")
+        for x in data_account:
+            logger.info(x)
         await process_ping(token, account_info, proxy)
     else:
         logger.warning(f"Failed to process token {token} with proxy {proxy}")
