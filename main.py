@@ -66,11 +66,11 @@ def dailyclaim(token):
         logger.error(f"Error : {e}")
 
 async def call_api(url, data, token, proxy):
-    user_agent = UserAgent().chrome if UserAgent().chrome else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-    sec_ch_ua_version = user_agent.split("Chrome/")[-1].split(" ")[0]
+    user_agent = UserAgent()
+    sec_ch_ua_version = user_agent.chrome.split("Chrome/")[-1].split(" ")[0]
     headers = {
         "Authorization": f"Bearer {token}",
-        "User-Agent": user_agent,
+        "User-Agent": user_agent.random,
         "Accept-Language": "en-US,en;q=0.9",
         "Referer": "https://app.nodepay.ai/",
         "Accept": "application/json",
@@ -95,14 +95,6 @@ async def call_api(url, data, token, proxy):
     except requests.exceptions.RequestException as e:
         logger.error(f"Error during API call: {e}")
         return None
-
-def extract_proxy_ip(proxy_url):
-    try:
-        parsed_url = urlparse(proxy_url)
-        return parsed_url.hostname
-    except Exception as e:
-        logger.warning(f"Failed to extract IP from proxy: {proxy_url}, error: {e}")
-        return "Unknown"
 
 async def start_ping(token, account_info, proxy):
     browser_id = str(uuid.uuid4())
