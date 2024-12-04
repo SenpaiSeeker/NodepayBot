@@ -5,7 +5,7 @@ import json
 import random
 
 from fake_useragent import UserAgent
-from curl_cffi import requests
+import requests
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
