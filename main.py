@@ -45,8 +45,10 @@ async def call_api(url, data, token, proxy):
         "User-Agent": user_agent.random,
         "Referer": "https://app.nodepay.ai/",
     }
+    transport = httpx.ProxyTransport(proxy)
+    
     try:
-        async with httpx.AsyncClient(proxies={"http": proxy, "https": proxy}, timeout=REQUEST_TIMEOUT) as client:
+        async with httpx.AsyncClient(transport=transport, timeout=REQUEST_TIMEOUT) as client:
             response = await client.post(url, json=data, headers=headers)
             response.raise_for_status()
             return response.json()
