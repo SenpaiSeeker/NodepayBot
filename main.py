@@ -5,7 +5,7 @@ import json
 import random
 
 from fake_useragent import UserAgent
-import requests
+import httpx
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
@@ -45,15 +45,12 @@ async def call_api(url, data, token, proxy):
         "User-Agent": user_agent.random,
         "Referer": "https://app.nodepay.ai/",
     }
-    proxies = {"http": proxy, "https": proxy}
     try:
-        response = requests.post(
-            url, json=data, headers=headers, proxies=proxies,
-            impersonate="chrome110", timeout=REQUEST_TIMEOUT
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
+        async with httpx.AsyncClient(proxies={"http": proxy, "https": proxy}, timeout=REQUEST_TIMEOUT) as client:
+            response = await client.post(url, json=data, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as e:
         logger.error(f"API call error: {e}")
         return None
 
