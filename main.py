@@ -1,17 +1,18 @@
 import asyncio
 import time
 import uuid
+import json
 import random
 
 from fake_useragent import UserAgent
-import aiohttp
+from curl_cffi import requests
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
 
 DOMAIN_API = {
     "SESSION": "http://api.nodepay.ai/api/auth/session",
-    "PING": ["http://18.142.29.174/api/network/ping", "https://nw.nodepay.org/api/network/ping"]
+    "PING": ["https://nw.nodepay.org/api/network/ping", "https://api.nodepay.org/api/network/device-networks"]
 }
 HEADERS_COMMON = {
     "Accept": "application/json",
@@ -44,21 +45,17 @@ async def call_api(url, data, token, proxy):
         "User-Agent": user_agent.random,
         "Referer": "https://app.nodepay.ai/",
     }
-    connector = aiohttp.TCPConnector(ssl=False)
-    async with aiohttp.ClientSession(connector=connector) as session:
-        try:
-            async with session.post(
-                url,
-                json=data,
-                headers=headers,
-                proxy=proxy,
-                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
-        except aiohttp.ClientError as e:
-            logger.error(f"API call error: {e}")
-            return None
+    proxies = {"http": proxy, "https": proxy}
+    try:
+        response = requests.post(
+            url, json=data, headers=headers, proxies=proxies,
+            impersonate="chrome110", timeout=REQUEST_TIMEOUT
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"API call error: {e}")
+        return None
 
 async def process_ping(token, account_info, proxy):
     browser_id = str(uuid.uuid4())
