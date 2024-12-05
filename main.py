@@ -1,11 +1,10 @@
 import asyncio
 import time
 import uuid
-import json
 import random
 
 from fake_useragent import UserAgent
-import httpx
+import aiohttp
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
@@ -45,15 +44,21 @@ async def call_api(url, data, token, proxy):
         "User-Agent": user_agent.random,
         "Referer": "https://app.nodepay.ai/",
     }
-    
-    try:
-        async with httpx.AsyncClient(proxy=proxy, timeout=REQUEST_TIMEOUT) as client:
-            response = await client.post(url, json=data, headers=headers)
-            response.raise_for_status()
-            return response.json()
-    except httpx.RequestError as e:
-        logger.error(f"API call error: {e}")
-        return None
+    connector = aiohttp.TCPConnector(ssl=False)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        try:
+            async with session.post(
+                url,
+                json=data,
+                headers=headers,
+                proxy=proxy,
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
+            ) as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
+            logger.error(f"API call error: {e}")
+            return None
 
 async def process_ping(token, account_info, proxy):
     browser_id = str(uuid.uuid4())
