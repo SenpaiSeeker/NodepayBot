@@ -5,15 +5,14 @@ import json
 import random
 
 from fake_useragent import UserAgent
-from curl_cffi import requests
+import httpx
 from loguru import logger
 from pyfiglet import figlet_format
 from termcolor import colored
 
 DOMAIN_API = {
     "SESSION": "http://api.nodepay.ai/api/auth/session",
-    "PING": ["https://nw.nodepay.org/api/network/ping"],
-    "DEVICE_NETWORK": "https://api.nodepay.org/api/network/device-networks"
+    "PING": ["http://18.142.29.174/api/network/ping", "https://nw.nodepay.org/api/network/ping"]
 }
 HEADERS_COMMON = {
     "Accept": "application/json",
@@ -46,15 +45,13 @@ async def call_api(url, data, token, proxy):
         "User-Agent": user_agent.random,
         "Referer": "https://app.nodepay.ai/",
     }
-    proxies = {"http": proxy, "https": proxy}
+    
     try:
-        response = requests.post(
-            url, json=data, headers=headers, proxies=proxies,
-            impersonate="chrome110", timeout=REQUEST_TIMEOUT
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
+        async with httpx.AsyncClient(proxy=proxy, timeout=REQUEST_TIMEOUT) as client:
+            response = await client.post(url, json=data, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as e:
         logger.error(f"API call error: {e}")
         return None
 
